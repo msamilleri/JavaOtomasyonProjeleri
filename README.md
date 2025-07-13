@@ -1,4 +1,4 @@
 # JavaOtomasyonProjeleri
-### BU repoda 2 tane proje vardır.
-###Birinci Proje Selenium Web Otomasyon.
+### Bu repoda 2 farkı Test Otomasyon projesi vardır.
+### Birinci Proje Selenium Web Otomasyon.
 ### İkinic Proje Web Servis Otomasyon
