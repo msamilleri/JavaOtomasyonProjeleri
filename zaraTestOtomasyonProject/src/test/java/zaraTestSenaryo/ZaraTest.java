@@ -1,5 +1,7 @@
 package zaraTestSenaryo;
+import com.google.common.collect.ImmutableMap;
 import org.openqa.selenium.By;
+import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.edge.EdgeDriver;
 import org.openqa.selenium.support.ui.ExpectedConditions;
@@ -39,14 +41,31 @@ public class ZaraTest extends BaseTest {
         seacrhProductPage = new SeacrhProductPage(driver); // ← BU SATIR EKSİKSE HATA VERİR
         logger.info("Tarayıcı başlatıldı ve Zara sitesi açıldı");
 
+        removeAutomationFlags();
+    }
+    private void removeAutomationFlags() {
+        // Webdriver özelliğini gizle
+        ((JavascriptExecutor) driver).executeScript(
+                "Object.defineProperty(navigator, 'webdriver', {get: () => undefined})"
+        );
+
+        // Diğer tarayıcı izlerini temizle
+        ((JavascriptExecutor) driver).executeScript(
+                "const originalProto = Object.getPrototypeOf(navigator);" +
+                        "Object.defineProperty(navigator, 'plugins', {get: () => [1, 2, 3]});" +
+                        "Object.defineProperty(navigator, 'languages', {get: () => ['tr-TR', 'tr']});" +
+                        "Object.defineProperty(originalProto, 'platform', {get: () => 'Win32'});" +
+                        "Object.defineProperty(originalProto, 'doNotTrack', {get: () => '1'});"
+        );
+
 
     }
 
 
     @Test
     public void testZaraShoppingFlow() throws InterruptedException {
-        // 1. Önce Giriş Yap sayfasına gidilir
 
+        // 1. Önce Giriş Yap sayfasına gidilir
         homePage.rejectCookies();
         homePage.goToLoginPage();
         homePage.goToLoginPageFirst();
@@ -57,13 +76,9 @@ public class ZaraTest extends BaseTest {
         );
         logger.info("Kullanıcı girişi yapıldı");
 
-        // 2. Navigasyon
+        // 2. Menüye tıklanır -> Erkek –> Tümünü Gör butonlarına tıklanır
         homePage.navigateToMenCategory();
         logger.info("Erkek kategorisine gidildi");
-
-
-        homePage.rejectCookies();
-        homePage.navigateToMenCategory();
         Thread.sleep(3000);
         homePage.clickSearchButton();
         Thread.sleep(3000);
@@ -75,14 +90,14 @@ public class ZaraTest extends BaseTest {
         // 4. Arama işlemleri
         seacrhProductPage.searchForTerm(sortKelimes);
         Thread.sleep(1000);
-        seacrhProductPage.clearSearch();
+        seacrhProductPage.removeShortFromSearch();
         Thread.sleep(1000);
         seacrhProductPage.searchForTerm(gomlekKelimesi);
         seacrhProductPage.enterSearch();
         Thread.sleep(1000);
         logger.info("Arama işlemleri tamamlandı");
 
-        // 5. Ürün seçimi
+        // 5. Sonuca göre sergilenen ürünlerden rastgele bir ürün seçilir.
         productListingPage = new ProductListingPage(driver);
         productListingPage.selectRandomProduct();
         logger.info("Rastgele ürün seçildi");
@@ -92,14 +107,12 @@ public class ZaraTest extends BaseTest {
         String productName = productDetailPage.getProductName();
         String productPrice = productDetailPage.getProductPrice();
 
-        System.out.println(productName);
-        System.out.println(productPrice);
 
-        // 7. Ürün bilgilerini kaydet
+        // 7. Seçilen ürünün ürün bilgisi ve tutar bilgisi txt dosyasına yazılır.
         FileUtils.saveProductInfo("product_info.txt", productName, productPrice);
         logger.info("Ürün bilgileri kaydedildi");
 
-        // 8. Sepete ekle
+        // 8. Seçilen ürün sepete eklenir.
         productDetailPage.addToCart();
         productDetailPage.selectFirstAvailableSize();
         productDetailPage.goToCart();
